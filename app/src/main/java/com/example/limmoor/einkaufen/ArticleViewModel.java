@@ -32,4 +32,7 @@ public class ArticleViewModel extends AndroidViewModel{
     public void deleteAll(){
         mRepository.deleteAll();
     }
+
+
+
 }

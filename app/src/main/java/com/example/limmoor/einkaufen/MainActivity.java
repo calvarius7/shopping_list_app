@@ -2,23 +2,20 @@ package com.example.limmoor.einkaufen;
 
 import android.app.AlertDialog;
 import android.arch.lifecycle.ViewModelProviders;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.NumberFormat;
-import java.util.Currency;
 import java.util.List;
 import java.util.Locale;
 
@@ -33,9 +30,14 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        initArticleList();
+        FloatingActionButton fab = findViewById(R.id.fab);
+        fab.setOnClickListener(view -> goToNewArticleActivity());
+    }
 
+    private void initArticleList() {
         RecyclerView recyclerView = findViewById(R.id.recyclerview);
-        final ArticleListAdapter articleListAdapter = new ArticleListAdapter(this, this::deleteArticle);
+        final ArticleListAdapter articleListAdapter = new ArticleListAdapter(this, this::onClickDeleteArticle);
         recyclerView.setAdapter(articleListAdapter);
         recyclerView.setLayoutManager(new LinearLayoutManager(this));
 
@@ -44,52 +46,6 @@ public class MainActivity extends AppCompatActivity {
         mArticleViewModel.getAllArticles().observe(this, articleListAdapter::setArticles);
 
         mArticleViewModel.getAllArticles().observe(this, this::showTotal);
-
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(view -> goToNewArticleActivity());
-
-    }
-
-    private boolean deleteArticle(Article item) {
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.delete_confirm_head))
-                .setMessage(getString(R.string.delete_msg))
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(android.R.string.yes, (dialog, whichButton) -> delete(item))
-                .setNegativeButton(android.R.string.no, null).show();
-        return true;
-    }
-
-    private void delete(Article item) {
-        mArticleViewModel.delete(item);
-        Toast.makeText(MainActivity.this, "So sad", Toast.LENGTH_SHORT).show();
-    }
-
-    private void showTotal(List<Article> articleList) {
-        TextView total = findViewById(R.id.sumField);
-
-        double sum = getSum(articleList);
-
-        NumberFormat format = NumberFormat.getCurrencyInstance(Locale.getDefault());
-
-        String stringTotal = getResources().getString(R.string.total) + format.format(sum);
-        total.setText(stringTotal);
-    }
-
-    private double getSum(List<Article> articleList) {
-        double sum = 0.00;
-        if (articleList != null && articleList.size() > 0) {
-            for (Article item : articleList) {
-                sum += item.getPrice();
-            }
-        }
-        return sum;
-    }
-
-    private void goToNewArticleActivity() {
-
-        Intent intent = new Intent(getApplicationContext(), AddToShoppingCart.class);
-        startActivityForResult(intent, ADDED_TO_CAR_REQUEST_CODE);
     }
 
     @Override
@@ -99,19 +55,41 @@ public class MainActivity extends AppCompatActivity {
         return true;
     }
 
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+    private boolean onClickDeleteArticle(Article item) {
+        AlertDialog.Builder builder = getDialogBuilder(R.string.delete_msg);
+        builder.setPositiveButton(android.R.string.yes, (dialog, whichButton) -> delete(item)).show();
+        return true;
+    }
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+    public void onClickDeleteAll(MenuItem item) {
+        AlertDialog.Builder builder = getDialogBuilder(R.string.delete_msg_all);
+        builder.setPositiveButton(android.R.string.yes, (dialog, whichButton) -> deleteAll()).show();
+    }
 
-        return super.onOptionsItemSelected(item);
+    private AlertDialog.Builder getDialogBuilder(int deleteMsg) {
+        return new AlertDialog.Builder(this)
+                .setTitle(getString(R.string.delete_confirm_head))
+                .setMessage(getString(deleteMsg))
+                .setIcon(android.R.drawable.ic_dialog_alert)
+                .setNegativeButton(android.R.string.no, null);
+    }
+
+    private void delete(Article item) {
+        mArticleViewModel.delete(item);
+        Toast.makeText(MainActivity.this, "So sad", Toast.LENGTH_SHORT).show();
+    }
+
+    private void deleteAll() {
+        mArticleViewModel.deleteAll();
+        Toast.makeText(MainActivity.this, "Time to say goodbye", Toast.LENGTH_SHORT).show();
+
+    }
+
+    private void showTotal(List<Article> articleList) {
+        TextView totalView = findViewById(R.id.sumField);
+        String stringTotal = new ShoppingCartTotal(articleList).getTotalAsCurrency();
+        String total = getResources().getString(R.string.total) + " " + stringTotal;
+        totalView.setText(total);
     }
 
     public void onActivityResult(int requestCode, int resultCode, Intent data) {
@@ -124,24 +102,21 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    private void showError() {
-        Toast.makeText(getApplicationContext(), "LOL! Leider zu dummm um zwei Werte richtig einzugegeben", Toast.LENGTH_SHORT).show();
-    }
-
     private void addArticle(Intent data) {
         String name = data.getStringExtra(AddToShoppingCart.EXTRA_REPLY_ARTICLE);
         Double price = data.getDoubleExtra(AddToShoppingCart.EXTRA_REPLY_PRICE, 0.00);
         Article article = new Article(0, name, price);
+
         mArticleViewModel.insert(article);
     }
 
-    public void deleteAll(MenuItem item) {
-        new AlertDialog.Builder(this)
-                .setTitle(getString(R.string.delete_confirm_head))
-                .setMessage(getString(R.string.delete_msg_all))
-                .setIcon(android.R.drawable.ic_dialog_alert)
-                .setPositiveButton(android.R.string.yes, (dialog, whichButton) -> mArticleViewModel.deleteAll())
-                .setNegativeButton(android.R.string.no, null).show();
+    private void showError() {
+        Toast.makeText(getApplicationContext(), "LOL! Leider zu dummm um zwei Werte richtig einzugegeben", Toast.LENGTH_SHORT).show();
+    }
 
+
+    private void goToNewArticleActivity() {
+        Intent intent = new Intent(getApplicationContext(), AddToShoppingCart.class);
+        startActivityForResult(intent, ADDED_TO_CAR_REQUEST_CODE);
     }
 }
