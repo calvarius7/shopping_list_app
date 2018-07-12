@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Einkaufen</string>
+    <string name="action_settings">Delete all</string>
+    <string name="hint_word">Article…</string>
+    <string name="button_save">Save</string>
+    <string name="empty_not_saved">Article not saved because it is empty.</string>
+    <string name="hint_description">Price…</string>
+    <string name="total">Total: </string>
+    <string name="delete_msg">Do you really want to delete it?</string>
+    <string name="delete_msg_all">Do you really want to delete everything??????</string>
+    <string name="delete_confirm_head">Confirmation</string>
+</resources>
