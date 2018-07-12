@@ -40,4 +40,5 @@ dependencies {
 
     implementation "android.arch.lifecycle:extensions:$rootProject.archLifecycleVersion"
     annotationProcessor "android.arch.lifecycle:compiler:$rootProject.archLifecycleVersion"
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.1.0'
 }

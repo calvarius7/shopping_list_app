@@ -18,9 +18,7 @@ public class ShoppingCartTotal {
     @NonNull
     String getTotalAsCurrency() {
         getSum();
-
         NumberFormat format = NumberFormat.getCurrencyInstance(Locale.getDefault());
-
         return format.format(total);
     }
 

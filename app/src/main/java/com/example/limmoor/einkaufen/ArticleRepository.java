@@ -11,7 +11,7 @@ public class ArticleRepository {
     private ArticleDao mArticleDao;
     private LiveData<List<Article>> mAllArticles;
 
-    ArticleRepository(Application application){
+    ArticleRepository(Application application) {
         ArticleDatabase db = ArticleDatabase.getDatabase(application);
         mArticleDao = db.articleDao();
         mAllArticles = mArticleDao.getAllArticles();
@@ -21,17 +21,18 @@ public class ArticleRepository {
         return mAllArticles;
     }
 
-    public void insert(Article article){
+    public void insert(Article article) {
         new insertAsyncTask(mArticleDao).execute(article);
     }
 
-    public void delete(Article article){
+    public void delete(Article article) {
         new deleteAsyncTask(mArticleDao).execute(article);
     }
 
-    public void deleteAll(){
+    public void deleteAll() {
         new deleteAllAsyncTask(mArticleDao).execute();
     }
+
     private static class insertAsyncTask extends AsyncTask<Article, Void, Void> {
         private ArticleDao mAsyncTaskDao;
 

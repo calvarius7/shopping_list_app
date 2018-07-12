@@ -28,11 +28,7 @@ public class ArticleViewModel extends AndroidViewModel{
     public void delete(Article article){
         mRepository.delete(article);
     }
-
     public void deleteAll(){
         mRepository.deleteAll();
     }
-
-
-
 }
